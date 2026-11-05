@@ -1,6 +1,6 @@
 import json
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 scores_file = 'scores.json'
