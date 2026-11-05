@@ -82,13 +82,63 @@ function moveTile(index) {
 
 function updateLeaderboardUI(list) {
     const container = document.getElementById("lbList");
-    if (!container || !list || list.length === 0) return;
+    if (!container) return;
+    if (!list || list.length === 0) {
+        container.innerHTML = '<div class="lb-empty">NO RECORDS YET. SOLVE TO CLAIM #1.</div>';
+        return;
+    }
     container.innerHTML = list.map((row, i) => `
     <div class="lb-row">
       <span>#${i + 1} ${row.name}</span>
       <span>${row.score} PTS (${row.time}s / ${row.moves}m)</span>
     </div>
   `).join('');
+}
+
+function saveLocalScore(name, score, time_s, movesCount) {
+    try {
+        const saved = JSON.parse(localStorage.getItem('3x3_leaderboard') || '[]');
+        saved.push({
+            name: name,
+            score: score,
+            time: Math.round(time_s * 10) / 10,
+            moves: movesCount
+        });
+        saved.sort((a, b) => b.score - a.score || a.time - b.time);
+        const top5 = saved.slice(0, 5);
+        localStorage.setItem('3x3_leaderboard', JSON.stringify(top5));
+        const best = top5[0] ? top5[0].score : 0;
+        const bestEl = document.getElementById('best');
+        if (bestEl) bestEl.innerText = best;
+        updateLeaderboardUI(top5);
+    } catch (e) {
+        console.error("Local storage error:", e);
+    }
+}
+
+function loadLeaderboard() {
+    fetch('/scores')
+        .then(r => {
+            if (!r.ok) throw new Error("No backend /scores route");
+            return r.json();
+        })
+        .then(d => {
+            const bestEl = document.getElementById('best');
+            if (bestEl) bestEl.innerText = d.best;
+            updateLeaderboardUI(d.leaderboard);
+        })
+        .catch(() => {
+            // Fallback to localStorage for GitHub Pages / static hosting
+            try {
+                const saved = JSON.parse(localStorage.getItem('3x3_leaderboard') || '[]');
+                const best = saved.length ? saved[0].score : 0;
+                const bestEl = document.getElementById('best');
+                if (bestEl) bestEl.innerText = best;
+                updateLeaderboardUI(saved);
+            } catch (e) {
+                console.error("Local storage load error:", e);
+            }
+        });
 }
 
 function checkWin() {
@@ -98,22 +148,29 @@ function checkWin() {
         const elapsed = (performance.now() - startTime) / 1000;
         const score = Math.max(500, Math.floor(1000 - (elapsed * 150) - (moves * 40)));
         const playerNameEl = document.getElementById('playerName');
-        const name = (playerNameEl && playerNameEl.value.trim()) || "ANON";
+        const name = (playerNameEl && playerNameEl.value.trim().toUpperCase().slice(0, 10)) || "ANON";
         const statusEl = document.getElementById('status');
         if (statusEl) statusEl.innerText = `SOLVED IN ${elapsed.toFixed(1)}s // SCORE: ${score}`;
         
+        // Attempt POST to Flask backend; fall back to localStorage if static/GitHub Pages
         fetch('/score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, score, time: elapsed, moves })
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error("Backend score post failed");
+            return r.json();
+        })
         .then(d => {
             const bestEl = document.getElementById('best');
             if (bestEl) bestEl.innerText = d.best;
             updateLeaderboardUI(d.leaderboard);
         })
-        .catch(err => console.error("Error submitting score:", err));
+        .catch(() => {
+            // Client-side persistence for GitHub Pages
+            saveLocalScore(name, score, elapsed, moves);
+        });
     }
 }
 
@@ -161,3 +218,4 @@ window.addEventListener('keyup', e => {
 });
 
 initGame();
+loadLeaderboard();

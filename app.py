@@ -1,8 +1,8 @@
 import json
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 
-app = Flask(__name__, template_folder='template', static_folder='static')
+app = Flask(__name__, template_folder='.', static_folder='static')
 scores_file = 'scores.json'
 
 def load_scores():
@@ -20,9 +20,13 @@ def save_scores(scores):
 
 @app.route("/")
 def index():
+    return send_from_directory('.', 'index.html')
+
+@app.route("/scores", methods=["GET"])
+def get_scores():
     scores = load_scores()
     best = scores[0]["score"] if scores else 0
-    return render_template("index.html", best=best, leaderboard=scores)
+    return jsonify({"best": best, "leaderboard": scores})
 
 @app.route("/score", methods=["POST"])
 def add_score():
