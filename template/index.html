@@ -4,53 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3x3</title>
-    <link rel="stylesheet" href="/others/style.css">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="header">
         <span class="title">3x3</span>
         <span class="tag">[ARCADE]</span>
-        </div>
-
-        <div class="board-wrap">
-            <div id="board" class="board"></div>
-            <div id="peek"  class="peek-overlay"></div> 
-        </div>
-
-        <div class="controls">
-            <input id="playerName" type="text" maxlength="10" placeholder="NAME" value="PLAYER">
-    <select id="preset" onchange="changePreset()">
-      <option value="https://picsum.photos/id/237/300/300">PUPPY</option>
-      <option value="https://picsum.photos/id/1025/300/300">PUG</option>
-      <option value="https://picsum.photos/id/1062/300/300">RETRO</option>
-      <option value="custom">URL...</option>
-    </select>
-    <button onclick="initGame()">SHUFFLE</button>
-        </div>
-
-        <div class="controls" id="customWrap" style="display: none;">
-    <input id="imgUrl" type="text" placeholder="Paste square image URL..." oninput="initGame()">
-  </div>
-
-  <div class="status" id="status">HOLD [SPACE] TO PEEK // CLICK OR ARROWS</div>
-
-  <div class="leaderboard">
-    <div class="lb-title">TOP 5 // LEADERBOARD</div>
-    <div id="lbList">
-      {% if leaderboard %}
-        {% for row in leaderboard %}
-          <div class="lb-row">
-            <span>#{{ loop.index }} {{ row.name }}</span>
-            <span>{{ row.score }} PTS ({{ row.time }}s / {{ row.moves }}m)</span>
-          </div>
-        {% endfor %}
-      {% else %}
-        <div class="lb-empty">NO RECORDS YET. SOLVE TO CLAIM #1.</div>
-      {% endif %}
     </div>
-  </div>
+
+    <div class="hud">
+        <span>TIME: <span id="time">00:00</span></span>
+        <span>MOVES: <span id="moves">0</span></span>
+        <span>BEST: <span id="best">{{ best }}</span></span>
+    </div>
+
+    <div class="board-wrap">
+        <div id="board" class="board"></div>
+        <div id="peek" class="peek-overlay"></div> 
+    </div>
+
+    <div class="controls">
+        <input id="playerName" type="text" maxlength="10" placeholder="NAME" value="PLAYER">
+        <select id="preset" onchange="changePreset()">
+          <option value="https://picsum.photos/id/237/300/300">PUPPY</option>
+          <option value="https://picsum.photos/id/1025/300/300">PUG</option>
+          <option value="https://picsum.photos/id/1062/300/300">RETRO</option>
+          <option value="custom">URL...</option>
+        </select>
+        <button onclick="initGame()">SHUFFLE</button>
+    </div>
+
+    <div class="controls" id="customWrap" style="display: none;">
+        <input id="imgUrl" type="text" placeholder="Paste square image URL..." oninput="initGame()">
+    </div>
+
+    <div class="status" id="status">HOLD [SPACE] TO PEEK // CLICK OR ARROWS</div>
+
+    <div class="leaderboard">
+        <div class="lb-title">TOP 5 // LEADERBOARD</div>
+        <div id="lbList">
+          {% if leaderboard %}
+            {% for row in leaderboard %}
+              <div class="lb-row">
+                <span>#{{ loop.index }} {{ row.name }}</span>
+                <span>{{ row.score }} PTS ({{ row.time }}s / {{ row.moves }}m)</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="lb-empty">NO RECORDS YET. SOLVE TO CLAIM #1.</div>
+          {% endif %}
+        </div>
+    </div>
         
-  <script src="/others/script.js"></script>
-    
+    <script src="/static/game.js"></script>
 </body>
 </html>
